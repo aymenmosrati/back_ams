@@ -105,3 +105,136 @@ exports.getResultById = async (req,res,next) => {
     }
 
 };
+
+
+
+// exports.updateResById = async (req, res, next) => {
+//   try {
+//     const id = req.body.id;
+//     const observation = req.body.observation;
+//     const evaluation = req.body.evaluation;
+//     let note = "";
+//     if (!id) {
+//       res.status(400).send({ Message: "missing id !" });
+//       return;
+//     }
+//     // if (!observation) {
+//     //   res.status(400).send({ Message: "missing observation !" });
+//     //   return;
+//     // }
+//     // if (!evaluation) {
+//     //   res.status(400).send({ Message: "missing evaluation !" });
+//     //   return;
+//     // }
+//     switch (evaluation) {
+//       case "Conforme":
+//         note = "100";
+//         break;
+//       case "Acceptable":
+//         note = "66";
+//         break;
+//       case "Aaméliorer":
+//         note = "33";
+//         break;
+//       case "Non-conforme":
+//         note = "0";
+//         break;
+//       case "Exclus(NA)":
+//         note = "NA";
+//         break;
+
+//       default:
+//         note="";
+//         break;
+//     }
+//     if(note ==""){
+//       res.status(400).send({Message :"note setting error !" })
+//       return;
+//     };
+
+//     const update = await db.ResQuestions.update(
+//       {
+//         observation: observation,
+//         evaluation: evaluation,
+//         note: note,
+//       },
+//       {
+//         where: { id: id },
+//       }
+//     );
+//     if (update == 0) {
+//       res.status(400).send({ Message: "nothing updated ! " });
+//     } else {
+//       res.status(400).send({ Message: "update successfully" });
+//     }
+//   } catch (error) {
+//     res
+//       .status(400)
+//       .send({ message: "error appear while updating the result !" });
+//   }
+// };
+
+
+
+
+exports.updateResById = async (req, res, next) => {
+  try {
+    const id = req.body.id;
+    const observation = req.body.observation;
+    const evaluation = req.body.evaluation;
+    let note = "";
+    let update = 0;
+    if (evaluation =="") {
+      update = await db.ResQuestions.update(
+        { observation: observation },
+        { where: { id: id } }
+      );
+    } else {
+      switch (evaluation) {
+        case "Conforme":
+          note = "100";
+          break;
+        case "Acceptable":
+          note = "66";
+          break;
+        case "Aaméliorer":
+          note = "33";
+          break;
+        case "Non-conforme":
+          note = "0";
+          break;
+        case "Exclus(NA)":
+          note = "NA";
+          break;
+  
+        default:
+          note = "";
+          break;
+      }
+      if (note == "") {
+        res.status(400).send({ Message: "note setting error !" });
+        return;
+      }
+
+      update = await db.ResQuestions.update(
+        {
+          observation: observation,
+          evaluation: evaluation,
+          note: note,
+        },
+        {
+          where: { id: id },
+        }
+      );
+    }
+    if (update == 0) {
+      res.status(400).send({ Message: "nothing updated ! " });
+    } else {
+      res.status(200).send({ Message: "update successfully" });
+    }
+  } catch (error) {
+    res
+      .status(400)
+      .send({ message: "error appear while updating the result !" });
+  }
+};

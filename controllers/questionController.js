@@ -42,11 +42,7 @@ exports.getbyId_question = (id) => {
 exports.getquestion_byIdarticle = (id) => {
   return new Promise((resolve, reject) => {
     db.Questions.findAll({ where: { ArticleId: id } }).then((question) => {
-      if (!question) {
-        reject("aucun question");
-      } else {
         resolve(question);
-      }
     });
   });
 };
@@ -55,11 +51,7 @@ exports.getquestion_byIdarticle = (id) => {
 exports.getAll_questions = () => {
   return new Promise((resolve, reject) => {
     db.Questions.findAll().then((question) => {
-      if (!question) {
-        reject("aucun questions");
-      } else {
         resolve(question);
-      }
     });
   });
 };

@@ -1,32 +1,40 @@
 module.exports = (sequelize, Datatype) => {
 
-    const ResQuestions=sequelize.define("ResQuestions",{
-        id_question:{
-          type:Datatype.STRING,
-          allowNull:false,
+    const ResQuestions = sequelize.define("ResQuestions", {
+        id_question: {
+            type: Datatype.STRING,
+            allowNull: false,
         },
-        evaluation:{
-            type:Datatype.STRING,
-            allowNull:true
+        evaluation: {
+            type: Datatype.STRING,
+            allowNull: true
         },
-        observation:{
-            type:Datatype.STRING,
-            allowNull:true
+        observation: {
+            type: Datatype.STRING,
+            allowNull: true
         },
-        note:{
-            type:Datatype.STRING,
-            allowNull:true
+        note: {
+            type: Datatype.STRING,
+            allowNull: true
         },
-        
+        // createdAt: {
+        //     type: Datatype.,
+        //     allowNull: true
+        // },
+        // updatedAt: {
+        //     type: Datatype.,
+        //     allowNull: true
+        // },
+
     })
-    ResQuestions.associate=models=>{
-        ResQuestions.belongsTo(models.Projet,{
-            onDelete:"cascade"
+    ResQuestions.associate = models => {
+        ResQuestions.belongsTo(models.Projet, {
+            onDelete: "cascade"
         }),
-        ResQuestions.belongsTo(models.Chapitres,{
-            onDelete:"cascade"
-        })
-        
+            ResQuestions.belongsTo(models.Chapitres, {
+                onDelete: "cascade"
+            })
+
     }
-    return ResQuestions 
+    return ResQuestions
 }  

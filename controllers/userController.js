@@ -18,25 +18,25 @@ const SchemaValidation = Joi.object({
   web: Joi.string(),
 });
 
-const mailer = async (username, email, password) => {
-  let testAccount = await nodemailer.createTestAccount();
-  let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: "africa.service.m@gmail.com",
-      pass: "africams",
-    },
-  });
-  let info = await transporter.sendMail({
-    to: `${email}`,
-    subject: "Hello ✔ Your Adress and password in platforme Africa MS ",
-    text: "Hello world?",
-    html: `<b> Acount of Entrepris : </b> ${username} <br/> <b>Your adress : </b>${email}<br/> <b>Your Password : </b>${password}`,
-  });
-  return info;
-}
+// const mailer = async (username, email, password) => {
+//   let testAccount = await nodemailer.createTestAccount();
+//   let transporter = nodemailer.createTransport({
+//     host: "smtp.gmail.com",
+//     port: 587,
+//     secure: false,
+//     auth: {
+//       user: "africa.service.m@gmail.com",
+//       pass: "africams",
+//     },
+//   });
+//   let info = await transporter.sendMail({
+//     to: `${email}`,
+//     subject: "Hello ✔ Your Adress and password in platforme Africa MS ",
+//     text: "Hello world?",
+//     html: `<b> Acount of Entrepris : </b> ${username} <br/> <b>Your adress : </b>${email}<br/> <b>Your Password : </b>${password}`,
+//   });
+//   return info;
+// }
 
 // Register for entreprise
 exports.register_entreprise = (
@@ -81,9 +81,8 @@ exports.register_entreprise = (
                     web: web,
                     UserId: response.id,
                   }).then((user) => {
-                    mailer(username, email, password)
-                    // console.log("aa :" ,username,email ,password)
-                    //  resolve({ user: response, contact: user }),
+                    // mailer(username, email, password)
+                    resolve({ user: response, contact: user })
                   });
                 } else {
                   reject("error for insertion");
@@ -224,34 +223,22 @@ exports.login = (email, password) => {
 exports.getbyId_consultant = (id) => {
   return new Promise((resolve, reject) => {
     db.Consultant.findOne({ where: { id: id } }).then((consultant) => {
-      if (!consultant) {
-        reject("aucun consultant");
-      } else {
-        // resolve(user);
-        db.Users.findOne({
-          where: { id: consultant.UserId, role: "consultant" },
-        }).then((user) => {
-          if (!user) {
-            reject("aucun user");
-          } else {
-            resolve(user);
-          }
-        });
-      }
+      db.Users.findOne({
+        where: { id: consultant.UserId, role: "consultant" },
+      }).then((user) => {
+        resolve(user);
+      });
+
     });
   });
 };
 
 exports.getbyId_entreprise = (id) => {
   return new Promise((resolve, reject) => {
-    db.Users.findOne({ where: { id: id, role: "entreprise" } }).then((user) => {
-      db.Entreprise.findOne({ where: { UserId: id } }).then((user_c) => {
-        if (!user_c) {
-          reject("aucun user");
-        } else {
-          user = { ...user.dataValues, subInfo: user_c };
-          resolve(user);
-        }
+    db.Entreprise.findOne({ where: { id: id } }).then((entreprise) => {
+      db.Users.findOne({ where: { id: entreprise.UserId, role: "entreprise" } }).then((user_c) => {
+        entreprise = { ...entreprise.dataValues, subInfo: user_c };
+        resolve(entreprise);
       });
     });
   });
@@ -381,11 +368,7 @@ exports.delete_user = (id) => {
 exports.countAll_consultant = () => {
   return new Promise((resolve, reject) => {
     db.Users.count({ where: { role: "consultant" } }).then((Nbr_C) => {
-      if (!Nbr_C) {
-        reject("aucun consultant");
-      } else {
-        resolve(Nbr_C);
-      }
+      resolve(Nbr_C);
     });
   });
 };
@@ -393,11 +376,7 @@ exports.countAll_consultant = () => {
 exports.countAll_entreprise = () => {
   return new Promise((resolve, reject) => {
     db.Users.count({ where: { role: "entreprise" } }).then((Nbr_E) => {
-      if (!Nbr_E) {
-        reject("aucun entreprise");
-      } else {
-        resolve(Nbr_E);
-      }
+      resolve(Nbr_E);
     });
   });
 };
@@ -405,11 +384,7 @@ exports.countAll_entreprise = () => {
 exports.countAll_norme = () => {
   return new Promise((resolve, reject) => {
     db.Normes.count().then((Nbr_N) => {
-      if (!Nbr_N) {
-        reject("aucun norme");
-      } else {
-        resolve(Nbr_N);
-      }
+      resolve(Nbr_N);
     });
   });
 };
@@ -417,11 +392,7 @@ exports.countAll_norme = () => {
 exports.countAll_project = () => {
   return new Promise((resolve, reject) => {
     db.Projet.count().then((Nbr_P) => {
-      if (!Nbr_P) {
-        reject("aucun project");
-      } else {
-        resolve(Nbr_P);
-      }
+      resolve(Nbr_P);
     });
   });
 };

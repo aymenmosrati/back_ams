@@ -59,7 +59,7 @@ route.get("/getAllProjects", projet_Controller.getAllProjects);
 
 route.delete("/deleteProject/:id", projet_Controller.deleteProject);
 
-
+route.patch("/updateResult",res_Controller.updateResById);
 // ----------------------------> result routes <-----------------------------------------
 
 route.get("/getResultsByProject/:id", res_Controller.getResultById);

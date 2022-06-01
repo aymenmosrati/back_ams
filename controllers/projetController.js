@@ -94,7 +94,7 @@ exports.ajoute_projet = (
                             `update db_ams.resquestions set ChapitreId = (select id from db_ams.chapitres where id = (select ChapitreId from db_ams.articles where id = (select ArticleId from db_ams.questions where id = ${item.id_question}))) where ProjetId = ${response.id} and id_question = ${item.id_question}`
                           )
                           .then((reschap) => {
-                            // resolve(item.id_question);
+                            resolve(item.id_question);
                           });
                       });
                       await db.Consultant.findOne({ where: { id: response.ConsultantId } }).then((res) => {
