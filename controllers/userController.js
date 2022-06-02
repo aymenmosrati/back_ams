@@ -6,7 +6,6 @@ const Users = require("../models/Users");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-
 const SchemaValidation = Joi.object({
   username: Joi.string().min(3).max(30).required(),
   telephone: Joi.number().min(11111111).max(99999999).required(),
@@ -82,10 +81,10 @@ exports.register_entreprise = (
                     UserId: response.id,
                   }).then((user) => {
                     // mailer(username, email, password)
-                    resolve({ user: response, contact: user })
+                    resolve({ user: response, contact: user });
                   });
                 } else {
-                  reject("error for insertion");
+                  reject("error occure while inesrting subInfos");
                 }
               })
               .catch((err) => reject(err));
@@ -97,13 +96,7 @@ exports.register_entreprise = (
 };
 
 // Register for consultant
-exports.register_consultant = (
-  username,
-  telephone,
-  email,
-  password,
-  adress
-) => {
+exports.register_consultant = (username, telephone, email, password) => {
   return new Promise((resolve, reject) => {
     let validation = SchemaValidation.validate({
       username,
@@ -137,7 +130,49 @@ exports.register_consultant = (
                     resolve({ user: response, disponibilité: user })
                   );
                 } else {
-                  reject("error for insertion");
+                  reject("error occure while inesrting subInfos");
+                }
+              })
+              .catch((err) => reject(err));
+          });
+        }
+      });
+    }
+  });
+};
+// Register for consultant
+exports.register_admin = (username, telephone, email, password, adress) => {
+  return new Promise((resolve, reject) => {
+    let validation = SchemaValidation.validate({
+      username,
+      telephone,
+      email,
+      password,
+      adress,
+    });
+    if (validation.error) {
+      reject(validation.error.details[0].message);
+    } else {
+      db.Users.count({ where: { email: email } }).then((doc) => {
+        if (doc != 0) {
+          reject("This email is used");
+        } else {
+          bcrypt.hash(password, 10).then((hashedPassord) => {
+            db.Users.create({
+              username: username,
+              telephone: telephone,
+              email: email,
+              password: hashedPassord,
+              role: "admin",
+              adress: adress,
+            })
+              .then((response) => {
+                if (response) {
+                  db.Admin.create({
+                    UserId: response.id,
+                  }).then((user) => resolve({ user: response }));
+                } else {
+                  reject("error occure while inesrting subInfos");
                 }
               })
               .catch((err) => reject(err));
@@ -197,6 +232,42 @@ exports.login = (email, password) => {
   });
 };
 
+exports.loginAdmin = (email, password) => {
+  return new Promise((resolve, reject) => {
+    db.Users.findOne({ where: { email: email } }).then((user) => {
+      if (!user) {
+        reject("invalid email");
+      } else {
+        bcrypt.compare(password, user.password).then((same) => {
+          if (same) {
+            let token = jwt.sign(
+              { id: user.id, username: user.email, role: user.role },
+              PrivateKey,
+              {
+                expiresIn: "24h",
+              }
+            );
+            const id = user.id;
+            const role = user.role;
+            if (role === "admin") {
+              db.Admin.findOne({ where: { UserId: id } }).then((admin) => {
+                user = { ...user.dataValues, subInfo: admin };
+                resolve({ user, token });
+              });
+            }else {
+                reject({message : "you don't have access to this area ! "})
+            }
+          } else {
+            reject("invalid password");
+          }
+        });
+      }
+    });
+  });
+};
+
+
+
 // login admin or consultant or entreprise
 // const PrivateKey = "eijnekv,evkznjzkveffznzivnz,feizivnafjafnmjf"
 // exports.login = (email, password) => {
@@ -228,7 +299,6 @@ exports.getbyId_consultant = (id) => {
       }).then((user) => {
         resolve(user);
       });
-
     });
   });
 };
@@ -236,7 +306,9 @@ exports.getbyId_consultant = (id) => {
 exports.getbyId_entreprise = (id) => {
   return new Promise((resolve, reject) => {
     db.Entreprise.findOne({ where: { id: id } }).then((entreprise) => {
-      db.Users.findOne({ where: { id: entreprise.UserId, role: "entreprise" } }).then((user_c) => {
+      db.Users.findOne({
+        where: { id: entreprise.UserId, role: "entreprise" },
+      }).then((user_c) => {
         entreprise = { ...entreprise.dataValues, subInfo: user_c };
         resolve(entreprise);
       });
@@ -249,7 +321,7 @@ exports.getAll_users = () => {
   return new Promise((resolve, reject) => {
     db.Users.findAll().then((users) => {
       if (!users) {
-        reject("aucun users");
+        reject("No user found");
       } else {
         resolve(users);
       }
@@ -262,7 +334,7 @@ exports.getAll_consultant = () => {
   return new Promise((resolve, reject) => {
     db.Users.findAll({ where: { role: "consultant" } }).then((users) => {
       if (!users) {
-        reject("aucun users");
+        reject("No Consultant found");
       } else {
         resolve(users);
       }
@@ -276,7 +348,7 @@ exports.getAll_entreprise = () => {
     db.Users.findAll({ where: { role: "entreprise" } }).then((users) => {
       // console.log(users);
       if (!users) {
-        reject("aucun users");
+        reject("No Entreprise found");
       } else {
         resolve(users);
       }
@@ -312,9 +384,9 @@ exports.update_user = (id, username, telephone, email, password, adress) => {
           )
             .then((response) => {
               if (!response) {
-                reject("error for update");
+                reject("cannot update");
               } else {
-                resolve("update success");
+                resolve("updated successfully");
               }
             })
             .catch((err) => reject(err));
@@ -335,9 +407,9 @@ exports.update_user = (id, username, telephone, email, password, adress) => {
               )
                 .then((response) => {
                   if (!response) {
-                    reject("error for update");
+                    reject("cannot update");
                   } else {
-                    resolve("update success");
+                    resolve("Updated successfully");
                   }
                 })
                 .catch((err) => reject(err));
@@ -356,9 +428,9 @@ exports.delete_user = (id) => {
   return new Promise((resolve, reject) => {
     db.Users.destroy({ where: { id: id } }).then((user) => {
       if (!user) {
-        reject("erorr for delete thes is user");
+        reject("cannot delete this User");
       } else {
-        resolve({ Success: true, message: "user is delete by Success" });
+        resolve({ Success: true, message: "Deleted Successfully" });
       }
     });
   });
@@ -422,7 +494,7 @@ exports.getAllCon = async (req, res, next) => {
       }
       index++;
     });
-  } catch (error) { }
+  } catch (error) {}
 };
 
 exports.getAllEntreprise = async (req, res, next) => {
@@ -440,7 +512,7 @@ exports.getAllEntreprise = async (req, res, next) => {
       }
       index++;
     });
-  } catch (error) { }
+  } catch (error) {}
 };
 
 // const getConsultantId = async (_id) => {
@@ -484,7 +556,9 @@ exports.decodeToken = async (req, res, next) => {
         res.status(200).send(decoded);
       }
       if (error) {
-        res.status(401).send({ Message: "error while decoding token ! token invalid" });
+        res
+          .status(401)
+          .send({ Message: "error while decoding token ! token invalid" });
       }
     });
   } catch (error) {

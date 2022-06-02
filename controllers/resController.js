@@ -90,23 +90,23 @@ exports.res_chap = (table_objet_id, id) => {
   });
 };
 
-
 /*
 #TODO: this functions needs some modifcations 
 -*/
-exports.getResultById = async (req,res,next) => {
-    try {
-        const results = await db.ResQuestions.findAll({
-          where: { ProjetId: req.params.id },
-        }).then((result)=>{return result})
-        res.send(results);    
-    } catch (error) {
-        res.status(400).send({message : " error occurred during get results process"})
-    }
-
+exports.getResultById = async (req, res, next) => {
+  try {
+    const results = await db.ResQuestions.findAll({
+      where: { ProjetId: req.params.id },
+    }).then((result) => {
+      return result;
+    });
+    res.send(results);
+  } catch (error) {
+    res
+      .status(400)
+      .send({ message: " error occurred during get results process" });
+  }
 };
-
-
 
 // exports.updateResById = async (req, res, next) => {
 //   try {
@@ -174,7 +174,39 @@ exports.getResultById = async (req,res,next) => {
 //   }
 // };
 
+exports.getChapitreResult = async (req, res, next) => {
+  try {
+    const projectId = req.body.ProjectId;
+    const ChapitreId = req.body.ChapitreId;
 
+    // const numberOfQuestion = await db.sequelize
+    //   .query(
+    //     `SELECT count(note) as count FROM db_ams.resquestions where ProjetId =${projectId} and ChapitreId=${ChapitreId} `
+    //   )
+    //   .then((result) => {
+    //     return result[0];
+    //   });
+
+    const resultChapitre = await db.sequelize
+      .query(
+        `SELECT AVG(note) as sum FROM db_ams.resquestions where ProjetId =${projectId} and ChapitreId=${ChapitreId} and note<>"NA" `
+      )
+      .then((result) => {
+        return result[0];
+      })
+      .catch((error) => {
+        console.log("error ------> ", error);
+      });
+    //console.log(Number(resultChapitre[0].sum) / Number(numberOfQuestion[0].count));
+    //const operation = number(resultChapitre[0]) / number(numberOfQuestion[0]);
+    res.send( resultChapitre);
+  } catch (error) {
+    res.send({
+      Message: " error appear in get chapitre result function ! ",
+      error: error,
+    });
+  }
+};
 
 
 exports.updateResById = async (req, res, next) => {
@@ -184,7 +216,7 @@ exports.updateResById = async (req, res, next) => {
     const evaluation = req.body.evaluation;
     let note = "";
     let update = 0;
-    if (evaluation =="") {
+    if (evaluation == "") {
       update = await db.ResQuestions.update(
         { observation: observation },
         { where: { id: id } }
@@ -206,7 +238,7 @@ exports.updateResById = async (req, res, next) => {
         case "Exclus(NA)":
           note = "NA";
           break;
-  
+
         default:
           note = "";
           break;

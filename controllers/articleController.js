@@ -30,7 +30,7 @@ exports.getbyId_article = (id) => {
   return new Promise((resolve, reject) => {
     db.Articles.findOne({ where: { id: id } }).then((article) => {
       if (!article) {
-        reject("aucun Article");
+        reject("Aucun Article");
       } else {
         resolve(article);
       }
@@ -43,7 +43,7 @@ exports.getarticle_byIdchapitre = (id) => {
   return new Promise((resolve, reject) => {
     db.Articles.findAll({ where: { ChapitreId: id } }).then((article) => {
       if (!article) {
-        reject("aucun Article");
+        reject("Aucun Article");
       } else {
         resolve(article);
       }
@@ -56,7 +56,7 @@ exports.getAll_articles = () => {
   return new Promise((resolve, reject) => {
     db.Articles.findAll().then((articles) => {
       if (!articles) {
-        reject("aucun articles");
+        reject("Aucun article");
       } else {
         resolve(articles);
       }
@@ -82,9 +82,9 @@ exports.update_article = (id, Articles, ChapitreId) => {
         )
           .then((response) => {
             if (!response) {
-              reject("error for update");
+              reject("Cannot update");
             } else {
-              resolve("update success");
+              resolve("Updated successfully");
             }
           })
           .catch((err) => reject(err));
@@ -100,14 +100,14 @@ exports.update_article = (id, Articles, ChapitreId) => {
             )
               .then((response) => {
                 if (!response) {
-                  reject("error for update");
+                  reject("cannot update");
                 } else {
-                  resolve("update success");
+                  resolve("update successfully");
                 }
               })
               .catch((err) => reject(err));
           } else {
-            reject("This Article is used");
+            reject("this article exists");
           }
         });
       }
@@ -120,7 +120,7 @@ exports.delete_article = (id) => {
   return new Promise((resolve, reject) => {
     db.Articles.destroy({ where: { id: id } }).then((article) => {
       if (!article) {
-        reject("erorr for delete thes is article");
+        reject("no data deleted");
       } else {
         resolve({ Success: true, message: "article is delete by Success" });
       }

@@ -405,3 +405,53 @@ exports.deleteProject = async (req, res, next) => {
     // res.json({ message: " error from catch delete Project" });
   }
 };
+
+exports.getProjectById = async (req, res, next) => {
+  try {
+    const id = req?.params?.id;
+    const normeId = await db.Projet.findOne({
+      attributes: ["NormeId"],
+      where: { id: id },
+    });
+    const norme = await db.Normes.findOne({
+      attributes: ["id", "norme"],
+      where: { id: normeId.NormeId },
+    });
+    const chapitres = await db.Chapitres.findAll({
+      attributes: ["id", "Chapitres"],
+      where: { NormeId: norme.id },
+    });
+
+    for (let index = 0; index < chapitres.length; index++) {
+      const element = chapitres[index];
+      const articles = await db.Articles.findAll({
+        attributes: ["id", "Articles"],
+        where: { ChapitreId: element.id },
+      });
+      for (let i = 0; i < articles.length; i++) {
+        const article = articles[i];
+        const Questions = await db.Questions.findAll({
+          attributes: ["id", "Questions"],
+          where: { ArticleId: article.id },
+        });
+        for (let j = 0; j < Questions.length; j++) {
+          const quest = Questions[j];
+          const result = await db.ResQuestions.findOne({
+            attributes: ["id", "observation", "evaluation", "note"],
+            where: { id_question: quest.id, ProjetId: normeId.NormeId },
+          });
+          Questions[j] = { ...Questions[j].dataValues, result: result };
+        }
+        articles[i] = { ...articles[i].dataValues, questions: Questions };
+        //console.log("-----> ",articles[i]);
+      }
+      chapitres[index] = { ...chapitres[index].dataValues, articles: articles };
+    }
+    // norme = {...norme.dataValues, chapitres:chapitres}
+    res.send({ ...norme.dataValues, chapitres: chapitres });
+  } catch (error) {
+    console.log("====================================");
+    console.log(error);
+    console.log("====================================");
+  }
+};
