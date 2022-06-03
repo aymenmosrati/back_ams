@@ -271,7 +271,6 @@ exports.updateResById = async (req, res, next) => {
   }
 };
 
-
 //---------------------> postman test
 // {
 //     "array": [
@@ -293,6 +292,10 @@ exports.updateResById = async (req, res, next) => {
 exports.getChapitreResults = async (req, res, next) => {
   try {
     const array = req.body.array;
+    if (!array) {
+      res.status(400).send("no data set");
+    }
+    console.log(array);
     let i = 0;
     let result = [];
     await array.forEach(async (element) => {
@@ -312,8 +315,8 @@ exports.getChapitreResults = async (req, res, next) => {
       i++;
     });
   } catch (error) {
-    console.log("----------------------------------------> ");
-    console.log("----------------------------------------> ");
+    console.log("---------------------------------------- ");
+    console.log("---------------------------------------- ");
     console.log("----------------------------------------> ", error);
   }
 };
