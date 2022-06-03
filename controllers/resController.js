@@ -189,17 +189,18 @@ exports.getChapitreResult = async (req, res, next) => {
 
     const resultChapitre = await db.sequelize
       .query(
-        `SELECT AVG(note) as sum FROM db_ams.resquestions where ProjetId =${projectId} and ChapitreId=${ChapitreId} and note<>"NA" `
+        `SELECT AVG(note) as average FROM db_ams.resquestions where ProjetId =${projectId} and ChapitreId=${ChapitreId} and note<>"NA" `
       )
       .then((result) => {
-        return result[0];
+        const variable = result[0];
+        return variable[0];
       })
       .catch((error) => {
         console.log("error ------> ", error);
       });
     //console.log(Number(resultChapitre[0].sum) / Number(numberOfQuestion[0].count));
     //const operation = number(resultChapitre[0]) / number(numberOfQuestion[0]);
-    res.send( resultChapitre);
+    res.send(resultChapitre);
   } catch (error) {
     res.send({
       Message: " error appear in get chapitre result function ! ",
@@ -207,7 +208,6 @@ exports.getChapitreResult = async (req, res, next) => {
     });
   }
 };
-
 
 exports.updateResById = async (req, res, next) => {
   try {
@@ -268,5 +268,52 @@ exports.updateResById = async (req, res, next) => {
     res
       .status(400)
       .send({ message: "error appear while updating the result !" });
+  }
+};
+
+
+//---------------------> postman test
+// {
+//     "array": [
+//         {
+//             "ProjectId": 27,
+//             "ChapitreId": 4
+//         },
+//         {
+//             "ProjectId": 27,
+//             "ChapitreId": 4
+//         },
+//         {
+//             "ProjectId": 27,
+//             "ChapitreId": 3
+//         }
+//     ]
+// }
+
+exports.getChapitreResults = async (req, res, next) => {
+  try {
+    const array = req.body.array;
+    let i = 0;
+    let result = [];
+    await array.forEach(async (element) => {
+      const { ProjectId, ChapitreId } = element;
+      const data = await db.sequelize
+        .query(
+          `SELECT AVG(note) as average FROM db_ams.resquestions where ProjetId =${ProjectId} and ChapitreId=${ChapitreId} and note<>"NA" `
+        )
+        .then((data) => {
+          const variable = data[0];
+          return variable[0];
+        });
+      result.push(await data);
+      if (i == array.length - 1) {
+        res.send(result);
+      }
+      i++;
+    });
+  } catch (error) {
+    console.log("----------------------------------------> ");
+    console.log("----------------------------------------> ");
+    console.log("----------------------------------------> ", error);
   }
 };

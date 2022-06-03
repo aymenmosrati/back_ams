@@ -61,7 +61,8 @@ route.delete("/deleteProject/:id", projet_Controller.deleteProject);
 
 route.patch("/updateResult",res_Controller.updateResById);
 // ----------------------------> result routes <-----------------------------------------
-route.get("/getChapitreResults", res_Controller.getChapitreResult);
+route.get("/getChapitreResult", res_Controller.getChapitreResult);
+route.get("/getChapitreResults", res_Controller.getChapitreResults);
 
 route.get("/getResultsByProject/:id", res_Controller.getResultById);
 module.exports = route;
