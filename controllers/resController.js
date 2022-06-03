@@ -292,9 +292,6 @@ exports.updateResById = async (req, res, next) => {
 exports.getChapitreResults = async (req, res, next) => {
   try {
     const array = req.body.array;
-    if (!array) {
-      res.status(400).send("no data set");
-    }
     console.log(array);
     let i = 0;
     let result = [];
