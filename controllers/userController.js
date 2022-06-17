@@ -96,7 +96,16 @@ exports.register_entreprise = (
 };
 
 // Register for consultant
-exports.register_consultant = (username, telephone, email, password) => {
+exports.register_consultant = (
+  username,
+  telephone,
+  email,
+  password,
+  adress
+) => {
+  console.log("====================================");
+  console.log("0");
+  console.log("====================================");
   return new Promise((resolve, reject) => {
     let validation = SchemaValidation.validate({
       username,
@@ -110,7 +119,7 @@ exports.register_consultant = (username, telephone, email, password) => {
     } else {
       db.Users.count({ where: { email: email } }).then((doc) => {
         if (doc != 0) {
-          reject("This email is used");
+          reject("This email is absolutly used");
         } else {
           bcrypt.hash(password, 10).then((hashedPassord) => {
             db.Users.create({
@@ -140,6 +149,7 @@ exports.register_consultant = (username, telephone, email, password) => {
     }
   });
 };
+
 // Register for consultant
 exports.register_admin = (username, telephone, email, password, adress) => {
   return new Promise((resolve, reject) => {
@@ -185,88 +195,178 @@ exports.register_admin = (username, telephone, email, password, adress) => {
 
 const PrivateKey = process.env.PRIVATE_KEY;
 
-exports.login = (email, password) => {
-  return new Promise((resolve, reject) => {
-    db.Users.findOne({ where: { email: email } }).then((user) => {
-      if (!user) {
-        reject("invalid email");
+exports.login = (req, res, next) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    db.Users.findOne({ where: { email: email } }).then((result) => {
+      if (!result) {
+        res.status(401).send({ Message: "verify your email" });
       } else {
-        bcrypt.compare(password, user.password).then((same) => {
+        bcrypt.compare(password, result.password).then((same) => {
           if (same) {
             let token = jwt.sign(
-              { id: user.id, username: user.email, role: user.role },
+              { id: result.id, username: result.email, role: result.role },
               PrivateKey,
               {
                 expiresIn: "24h",
               }
             );
-            const id = user.id;
-            const role = user.role;
+            const id = result.id;
+            const role = result.role;
             switch (role) {
               case "consultant":
                 db.Consultant.findOne({ where: { UserId: id } }).then(
                   (consultant) => {
-                    user = { ...user.dataValues, subInfo: consultant };
-                    resolve({ user, token });
+                    result = { ...result.dataValues, subInfo: consultant };
+                    res.status(200).send({ result, token });
                   }
                 );
+                break;
               case "entreprise":
                 db.Entreprise.findOne({ where: { UserId: id } }).then(
                   (entreprise) => {
-                    user = { ...user.dataValues, subInfo: entreprise };
-                    resolve({ user, token });
+                    result = { ...result.dataValues, subInfo: entreprise };
+                    res.status(200).send({ result, token });
                   }
                 );
+                break;
               case "admin":
                 db.Admin.findOne({ where: { UserId: id } }).then((admin) => {
-                  user = { ...user.dataValues, subInfo: admin };
-                  resolve({ user, token });
+                  result = { ...result.dataValues, subInfo: admin };
+                  res.status(200).send({ result, token });
                 });
+                break;
             }
           } else {
-            reject("invalid password");
+            res.status(401).send({ Message: "Verify your password !" });
           }
         });
       }
     });
-  });
+  } catch (error) {
+    res.status(400).send({ Message: "error login process ! " });
+  }
 };
 
-exports.loginAdmin = (email, password) => {
-  return new Promise((resolve, reject) => {
-    db.Users.findOne({ where: { email: email } }).then((user) => {
-      if (!user) {
-        reject("invalid email");
-      } else {
-        bcrypt.compare(password, user.password).then((same) => {
-          if (same) {
-            let token = jwt.sign(
-              { id: user.id, username: user.email, role: user.role },
-              PrivateKey,
-              {
-                expiresIn: "24h",
-              }
-            );
-            const id = user.id;
-            const role = user.role;
-            if (role === "admin") {
-              db.Admin.findOne({ where: { UserId: id } }).then((admin) => {
-                user = { ...user.dataValues, subInfo: admin };
-                resolve({ user, token });
-              });
-            }else {
-                reject({message : "you don't have access to this area ! "})
+// exports.login = (email, password) => {
+//   return new Promise((resolve, reject) => {
+//     db.Users.findOne({ where: { email: email } }).then((user) => {
+//       if (!user) {
+//         reject("invalid email");
+//       } else {
+//         bcrypt.compare(password, user.password).then((same) => {
+//           if (same) {
+//             let token = jwt.sign(
+//               { id: user.id, username: user.email, role: user.role },
+//               PrivateKey,
+//               {
+//                 expiresIn: "24h",
+//               }
+//             );
+//             const id = user.id;
+//             const role = user.role;
+//             switch (role) {
+//               case "consultant":
+//                 db.Consultant.findOne({ where: { UserId: id } }).then(
+//                   (consultant) => {
+//                     user = { ...user.dataValues, subInfo: consultant };
+//                     resolve({ user, token });
+//                   }
+//                 );
+//               case "entreprise":
+//                 db.Entreprise.findOne({ where: { UserId: id } }).then(
+//                   (entreprise) => {
+//                     user = { ...user.dataValues, subInfo: entreprise };
+//                     resolve({ user, token });
+//                   }
+//                 );
+//               case "admin":
+//                 db.Admin.findOne({ where: { UserId: id } }).then((admin) => {
+//                   user = { ...user.dataValues, subInfo: admin };
+//                   resolve({ user, token });
+//                 });
+//             }
+//           } else {
+//             reject("invalid password");
+//           }
+//         });
+//       }
+//     });
+//   });
+// };
+
+exports.loginAdmin = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  db.Users.findOne({ where: { email: email } }).then((user) => {
+    if (!user) {
+      res.status(401).send({ Message: "invalid email" });
+    } else {
+      bcrypt.compare(password, user.password).then((same) => {
+        if (same) {
+          let token = jwt.sign(
+            { id: user.id, username: user.email, role: user.role },
+            PrivateKey,
+            {
+              expiresIn: "24h",
             }
+          );
+          const id = user.id;
+          const role = user.role;
+          if (role === "admin") {
+            db.Admin.findOne({ where: { UserId: id } }).then((admin) => {
+              user = { ...user.dataValues, subInfo: admin };
+              res.status(200).send({ user, token });
+            });
           } else {
-            reject("invalid password");
+            res
+              .status(401)
+              .send({ Message: "you don't have access to this area !" });
           }
-        });
-      }
-    });
+        } else {
+          res.status(401).send({ Message: "invalid password" });
+        }
+      });
+    }
   });
 };
 
-
+// exports.loginAdmin = (email, password) => {
+//   return new Promise((resolve, reject) => {
+//     db.Users.findOne({ where: { email: email } }).then((user) => {
+//       if (!user) {
+//         reject("invalid email");
+//       } else {
+//         bcrypt.compare(password, user.password).then((same) => {
+//           if (same) {
+//             let token = jwt.sign(
+//               { id: user.id, username: user.email, role: user.role },
+//               PrivateKey,
+//               {
+//                 expiresIn: "24h",
+//               }
+//             );
+//             const id = user.id;
+//             const role = user.role;
+//             if (role === "admin") {
+//               db.Admin.findOne({ where: { UserId: id } }).then((admin) => {
+//                 user = { ...user.dataValues, subInfo: admin };
+//                 resolve({ user, token });
+//               });
+//             } else {
+//               reject({ message: "you don't have access to this area ! " });
+//             }
+//           } else {
+//             reject("invalid password");
+//           }
+//         });
+//       }
+//     });
+//   });
+// };
 
 // login admin or consultant or entreprise
 // const PrivateKey = "eijnekv,evkznjzkveffznzivnz,feizivnafjafnmjf"
