@@ -1,43 +1,48 @@
-const express=require('express')
-const route=express.Router()
-const question_Controller=require('../controllers/questionController')
-const { isAdmin } = require('../middleware/authenticated')
+const express = require("express");
+const route = express.Router();
+const question_Controller = require("../controllers/questionController");
+const { isAdmin, isAuthenticated } = require("../middleware/authenticated");
 
+route.post("/ajoute_question", isAdmin, (req, res, next) => {
+  question_Controller
+    .ajoute_questions(req.body.Questions, req.body.ArticleId)
+    .then((response) => res.status(200).json(response))
+    .catch((err) => res.status(400).json(err));
+});
 
-route.post('/ajoute_question',isAdmin, (req,res,next)=>{
-    question_Controller.ajoute_questions(req.body.Questions, req.body.ArticleId)
-    .then(response=>res.status(200).json(response))
-    .catch((err)=>res.status(400).json(err))
-})
+route.get("/getAll_question", isAuthenticated, (req, res, next) => {
+  question_Controller
+    .getAll_questions()
+    .then((response) => res.status(200).json(response))
+    .catch((err) => res.status(400).json({ err: err }));
+});
 
-route.get('/getAll_question',(req,res,next)=>{
-    question_Controller.getAll_questions()
-    .then(response=>res.status(200).json(response))
-    .catch((err)=>res.status(400).json({err:err}))
-})
+route.get("/getbyId_question/:id", isAuthenticated, (req, res, next) => {
+  question_Controller
+    .getbyId_question(req.params.id)
+    .then((response) => res.status(200).json(response))
+    .catch((err) => res.status(400).json({ err: err }));
+});
 
-route.get('/getbyId_question/:id',(req,res,next)=>{
-    question_Controller.getbyId_question(req.params.id)
-    .then(response=>res.status(200).json(response))
-    .catch((err)=>res.status(400).json({err:err}))
-})
+route.get("/getquestion_byIdarticle/:id", isAuthenticated, (req, res, next) => {
+  question_Controller
+    .getquestion_byIdarticle(req.params.id)
+    .then((response) => res.status(200).json(response))
+    .catch((err) => res.status(400).json({ err: err }));
+});
 
-route.get('/getquestion_byIdarticle/:id',(req,res,next)=>{
-    question_Controller.getquestion_byIdarticle(req.params.id)
-    .then(response=>res.status(200).json(response))
-    .catch((err)=>res.status(400).json({err:err}))
-})
+route.patch("/update_question/:id", isAdmin, (req, res, next) => {
+  question_Controller
+    .update_question(req.params.id, req.body.Questions, req.body.ArticleId)
+    .then((response) => res.status(200).json(response))
+    .catch((err) => res.status(400).json(err));
+});
 
-route.patch('/update_question/:id',(req,res,next)=>{
-    question_Controller.update_question(req.params.id,req.body.Questions, req.body.ArticleId)  
-    .then(response=>res.status(200).json(response))
-    .catch((err)=>res.status(400).json(err))
-})
+route.delete("/delete_question/:id", isAdmin, (req, res, next) => {
+  question_Controller
+    .delete_question(req.params.id)
+    .then((response) => res.status(200).json(response))
+    .catch((err) => res.status(400).json({ err: err }));
+});
 
-route.delete('/delete_question/:id',(req,res,next)=>{
-    question_Controller.delete_question(req.params.id)
-    .then(response=>res.status(200).json(response))
-    .catch((err)=>res.status(400).json({err:err}))
-})
-
-module.exports=route 
+module.exports = route;
