@@ -1,8 +1,13 @@
 const express = require("express");
 const route = express.Router();
 const userController = require("../controllers/userController");
+const {
+  isAdmin,
+  isAuthenticated,
+  isConsultant,
+} = require("../middleware/authenticated");
 
-route.post("/register_entreprise", (req, res, next) => {
+route.post("/register_entreprise", isAdmin, (req, res, next) => {
   userController
     .register_entreprise(
       req.body.username,
@@ -18,7 +23,7 @@ route.post("/register_entreprise", (req, res, next) => {
     .catch((err) => res.status(400).json(err));
 });
 
-route.post("/register_consultant", (req, res, next) => {
+route.post("/register_consultant", isAdmin, (req, res, next) => {
   userController
     .register_consultant(
       req.body.username,
@@ -31,7 +36,7 @@ route.post("/register_consultant", (req, res, next) => {
     .catch((err) => res.status(401).json(err));
 });
 
-route.post("/register_admin", (req, res, next) => {
+route.post("/register_admin", isAdmin, (req, res, next) => {
   userController
     .register_admin(
       req.body.username,
@@ -61,42 +66,42 @@ route.post("/loginAdmin", userController.loginAdmin);
 //     .catch((error) => res.status(401).json(error));
 // });
 
-route.get("/getAll", (req, res, next) => {
+route.get("/getAll", isAdmin, (req, res, next) => {
   userController
     .getAll_users()
     .then((users) => res.status(200).json(users))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/getAll_consultant", (req, res, next) => {
+route.get("/getAll_consultant", isAuthenticated, (req, res, next) => {
   userController
     .getAll_consultant()
     .then((users) => res.status(200).json(users))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/getAll_entreprise", (req, res, next) => {
+route.get("/getAll_entreprise", isAuthenticated, (req, res, next) => {
   userController
     .getAll_entreprise()
     .then((users) => res.status(200).json(users))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/getbyId_consultant/:id", (req, res, next) => {
+route.get("/getbyId_consultant/:id", isAuthenticated, (req, res, next) => {
   userController
     .getbyId_consultant(req.params.id)
     .then((user) => res.status(200).json(user))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/getbyId_entreprise/:id", (req, res, next) => {
+route.get("/getbyId_entreprise/:id", isAuthenticated, (req, res, next) => {
   userController
     .getbyId_entreprise(req.params.id)
     .then((user) => res.status(200).json(user))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.patch("/update_user/:id", (req, res, next) => {
+route.patch("/update_user/:id", isAdmin, (req, res, next) => {
   userController
     .update_user(
       req.params.id,
@@ -110,35 +115,35 @@ route.patch("/update_user/:id", (req, res, next) => {
     .catch((err) => res.status(400).json(err));
 });
 
-route.delete("/delete_user/:id", (req, res, next) => {
+route.delete("/delete_user/:id", isAdmin, (req, res, next) => {
   userController
     .delete_user(req.params.id)
     .then((user) => res.status(200).json(user))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/countAll_consultant", (req, res, next) => {
+route.get("/countAll_consultant", isAdmin, (req, res, next) => {
   userController
     .countAll_consultant()
     .then((users) => res.status(200).json(users))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/countAll_entreprise", (req, res, next) => {
+route.get("/countAll_entreprise", isAdmin, (req, res, next) => {
   userController
     .countAll_entreprise()
     .then((users) => res.status(200).json(users))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/countAll_norme", (req, res, next) => {
+route.get("/countAll_norme", isAdmin, (req, res, next) => {
   userController
     .countAll_norme()
     .then((users) => res.status(200).json(users))
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/countAll_project", (req, res, next) => {
+route.get("/countAll_project", isAdmin, (req, res, next) => {
   userController
     .countAll_project()
     .then((users) => res.status(200).json(users))
@@ -146,8 +151,12 @@ route.get("/countAll_project", (req, res, next) => {
 });
 
 //-----------------> ... new function get route ... <---------------------
-route.get("/getAllUserConsultant", userController.getAllCon);
-route.get("/getAllUserEntreprise", userController.getAllEntreprise);
+route.get("/getAllUserConsultant", isAuthenticated, userController.getAllCon);
+route.get(
+  "/getAllUserEntreprise",
+  isAuthenticated,
+  userController.getAllEntreprise
+);
 
-route.post("/decodeToken", userController.decodeToken);
+route.post("/decodeToken", isAuthenticated, userController.decodeToken);
 module.exports = route;

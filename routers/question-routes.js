@@ -1,9 +1,10 @@
 const express=require('express')
 const route=express.Router()
 const question_Controller=require('../controllers/questionController')
+const { isAdmin } = require('../middleware/authenticated')
 
 
-route.post('/ajoute_question',(req,res,next)=>{
+route.post('/ajoute_question',isAdmin, (req,res,next)=>{
     question_Controller.ajoute_questions(req.body.Questions, req.body.ArticleId)
     .then(response=>res.status(200).json(response))
     .catch((err)=>res.status(400).json(err))

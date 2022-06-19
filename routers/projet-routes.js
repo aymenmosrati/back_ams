@@ -2,8 +2,13 @@ const express = require("express");
 const route = express.Router();
 const projet_Controller = require("../controllers/projetController");
 const res_Controller = require("../controllers/resController");
+const {
+  isAdmin,
+  isAuthenticated,
+  isConsultant,
+} = require("../middleware/authenticated");
 
-route.post("/ajoute_projet", (req, res, next) => {
+route.post("/ajoute_projet", isAdmin, (req, res, next) => {
   projet_Controller
     .ajoute_projet(
       req.body.date_deb,
@@ -17,7 +22,7 @@ route.post("/ajoute_projet", (req, res, next) => {
     .catch((err) => res.status(400).json(err));
 });
 
-route.get("/getbyId_projet/:id", (req, res, next) => {
+route.get("/getbyId_projet/:id", isAuthenticated, (req, res, next) => {
   projet_Controller
     .getbyId_projet(req.params.id)
     .then((response) => res.status(200).json(response))
@@ -25,7 +30,7 @@ route.get("/getbyId_projet/:id", (req, res, next) => {
 });
 
 // modifie resulta de projet
-route.patch("/update_res", (req, res, next) => {
+route.patch("/update_res", isConsultant, (req, res, next) => {
   const payload = {
     table_objet: req.body.table_objet,
     // [{
@@ -43,7 +48,7 @@ route.patch("/update_res", (req, res, next) => {
 });
 
 // get les resulta des question d'un projet
-route.get("/res_chap/:id", (req, res, next) => {
+route.get("/res_chap/:id", isConsultant, (req, res, next) => {
   const table_objet_id = req.body.table_objet_id;
   res_Controller
     .res_chap(table_objet_id, req.params.id)
@@ -51,18 +56,18 @@ route.get("/res_chap/:id", (req, res, next) => {
     .catch((err) => res.status(400).json({ err: err }));
 });
 
-route.get("/getPC/:id", projet_Controller.getProjectByIdC);
+route.get("/getPC/:id",isAuthenticated, projet_Controller.getProjectByIdC);
 
-route.get("/getPE/:id", projet_Controller.getProjectByIdE);
+route.get("/getPE/:id",isAuthenticated, projet_Controller.getProjectByIdE);
 
-route.get("/getAllProjects", projet_Controller.getAllProjects);
+route.get("/getAllProjects",isAuthenticated, projet_Controller.getAllProjects);
 
-route.delete("/deleteProject/:id", projet_Controller.deleteProject);
+route.delete("/deleteProject/:id",isAdmin, projet_Controller.deleteProject);
 
-route.patch("/updateResult",res_Controller.updateResById);
+route.patch("/updateResult",isConsultant, res_Controller.updateResById);
 // ----------------------------> result routes <-----------------------------------------
-route.post("/getChapitreResult", res_Controller.getChapitreResult);
-route.post("/getChapitreResults", res_Controller.getChapitreResults);
+route.post("/getChapitreResult", isAuthenticated,res_Controller.getChapitreResult);
+route.post("/getChapitreResults",isAuthenticated, res_Controller.getChapitreResults);
 
-route.get("/getResultsByProject/:id", res_Controller.getResultById);
+route.get("/getResultsByProject/:id",isAuthenticated, res_Controller.getResultById);
 module.exports = route;
