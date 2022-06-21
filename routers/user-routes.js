@@ -36,7 +36,8 @@ route.post("/register_consultant", isAdmin, (req, res, next) => {
     .catch((err) => res.status(401).json(err));
 });
 
-route.post("/register_admin", isAdmin, (req, res, next) => {
+// isAdmin,
+route.post("/register_admin",  (req, res, next) => {
   userController
     .register_admin(
       req.body.username,
@@ -97,6 +98,13 @@ route.get("/getbyId_consultant/:id", isAuthenticated, (req, res, next) => {
 route.get("/getbyId_entreprise/:id", isAuthenticated, (req, res, next) => {
   userController
     .getbyId_entreprise(req.params.id)
+    .then((user) => res.status(200).json(user))
+    .catch((err) => res.status(400).json({ err: err }));
+});
+
+route.get("/getId/:id/:role", (req, res, next) => {
+  userController
+    .getId(req.params.id, req.params.role)
     .then((user) => res.status(200).json(user))
     .catch((err) => res.status(400).json({ err: err }));
 });

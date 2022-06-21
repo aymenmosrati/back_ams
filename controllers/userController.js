@@ -8,11 +8,11 @@ const nodemailer = require("nodemailer");
 
 const SchemaValidation = Joi.object({
   username: Joi.string().min(3).max(30).required(),
-  telephone: Joi.number().min(11111111).max(99999999).required(),
+  telephone: Joi.number().min(10000000).max(99999999).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
   adress: Joi.string().required(),
-  mobile: Joi.number().min(11111111).max(99999999),
+  mobile: Joi.number().min(10000000).max(99999999),
   contact: Joi.string(),
   web: Joi.string(),
 });
@@ -453,6 +453,22 @@ exports.getAll_entreprise = () => {
         resolve(users);
       }
     });
+  });
+};
+
+// get id consultant or entreprise by id user consultant
+exports.getId = (id , role) => {
+  return new Promise((resolve, reject) => {
+    if (role =="entreprise") {
+      db.Entreprise.findOne({ where: { UserId: id } }).then((users) => {      
+          resolve(users);
+      });
+    }else if (role =="consultant"){
+      db.Consultant.findOne({ where: { UserId: id } }).then((users) => {      
+        resolve(users);
+    });
+    }
+    
   });
 };
 
