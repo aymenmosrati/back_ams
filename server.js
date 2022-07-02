@@ -30,7 +30,7 @@ app.post('/send-mail', async (req, res) => {
     res.send('evoiye avec succes')
 })
 
-const port = process.env.PORT || 5000
+const port = Process.env.PORT || 5000
 // init server 
 db.sequelize.sync().then(() => {
     app.listen(port, () => console.log(`Server running on port ${port}`))
